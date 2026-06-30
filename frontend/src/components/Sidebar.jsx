@@ -1,113 +1,66 @@
 import {
-    FaHome,
-    FaClipboardList,
-    FaChartLine,
-    FaRobot,
-    FaUser,
-    FaBell
-} from "react-icons/fa";
+    LayoutDashboard,
+    ListChecks,
+    BarChart3,
+    Sparkles,
+    UserCircle2,
+    Bell,
+    Flame
+} from "lucide-react";
 
 import { NavLink } from "react-router-dom";
 
 const menu = [
-    {
-        name: "Dashboard",
-        path: "/dashboard",
-        icon: <FaHome />
-    },
-    {
-        name: "Habits",
-        path: "/habits",
-        icon: <FaClipboardList />
-    },
-    {
-        name: "Analytics",
-        path: "/analytics",
-        icon: <FaChartLine />
-    },
-    {
-        name: "AI Insights",
-        path: "/insights",
-        icon: <FaRobot />
-    },
-    {
-        name: "Profile",
-        path: "/profile",
-        icon: <FaUser />
-    },
-    {
-        name: "Notifications",
-        path: "/notifications",
-        icon: <FaBell />
-    }
+    { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+    { name: "Habits", path: "/habits", icon: ListChecks },
+    { name: "Analytics", path: "/analytics", icon: BarChart3 },
+    { name: "AI Insights", path: "/insights", icon: Sparkles },
+    { name: "Profile", path: "/profile", icon: UserCircle2 },
+    { name: "Notifications", path: "/notifications", icon: Bell }
 ];
 
 export default function Sidebar() {
 
     return (
+        <aside className="flex w-64 shrink-0 min-h-screen flex-col bg-ink-950 text-white px-5 py-7">
 
-        <aside className="w-64 min-h-screen bg-slate-900 text-white p-6">
+            <div className="flex items-center gap-3 px-2 mb-10">
+                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center shadow-soft">
+                    <Flame size={20} className="text-white" />
+                </div>
+                <div className="leading-tight">
+                    <p className="text-lg font-extrabold tracking-tight">Habit AI</p>
+                    <p className="text-[11px] uppercase tracking-wider text-ink-400">Intelligence System</p>
+                </div>
+            </div>
 
-            <h1 className="text-3xl font-bold text-center text-blue-400">
-
-                HABIT AI
-
-            </h1>
-
-            <p className="text-center text-gray-400 text-sm mb-10">
-
-                Intelligence System
-
-            </p>
-
-            <nav className="space-y-2">
-
-                {
-
-                    menu.map((item) => (
-
+            <nav className="flex-1 space-y-1">
+                {menu.map((item) => {
+                    const Icon = item.icon;
+                    return (
                         <NavLink
-
                             key={item.path}
-
                             to={item.path}
-
                             className={({ isActive }) =>
-
-                                `flex items-center gap-4 px-4 py-3 rounded-lg transition
-
-                                ${
-
+                                `group flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
                                     isActive
-
-                                    ?
-
-                                    "bg-blue-600"
-
-                                    :
-
-                                    "hover:bg-slate-700"
-
+                                        ? "bg-brand-600 text-white shadow-soft"
+                                        : "text-ink-300 hover:bg-white/5 hover:text-white"
                                 }`
-
                             }
-
                         >
-
-                            {item.icon}
-
-                            {item.name}
-
+                            <Icon size={18} className="shrink-0" />
+                            <span>{item.name}</span>
                         </NavLink>
-
-                    ))
-
-                }
-
+                    );
+                })}
             </nav>
 
+            <div className="mt-6 rounded-xl bg-white/5 border border-white/10 p-4">
+                <p className="text-xs text-ink-300 leading-relaxed">
+                    Small steps, tracked daily, compound into big change.
+                </p>
+            </div>
         </aside>
-
     );
-
 }

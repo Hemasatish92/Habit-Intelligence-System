@@ -7,6 +7,8 @@ from app.models.habit import Habit
 from app.models.habit_log import HabitLog
 from app.schemas.log import LogCreate
 
+from app.services.cache_service import delete_cache
+
 
 def create_log(
     db: Session,
@@ -57,6 +59,10 @@ def create_log(
     db.commit()
     db.refresh(new_log)
 
+    # Clear analytics cache
+    delete_cache(f"weekly_user_{user_id}")
+    delete_cache(f"monthly_user_{user_id}")
+
     return new_log
 
 
@@ -97,3 +103,52 @@ def get_logs_by_habit(
         .filter(HabitLog.habit_id == habit_id)
         .all()
     )
+
+
+def delete_today_log(
+    db: Session,
+    habit_id: int,
+    user_id: int
+):
+    # Verify habit belongs to user
+    habit = (
+        db.query(Habit)
+        .filter(
+            Habit.id == habit_id,
+            Habit.user_id == user_id
+        )
+        .first()
+    )
+
+    if not habit:
+        raise HTTPException(
+            status_code=404,
+            detail="Habit not found"
+        )
+
+    # Find today's log
+    log = (
+        db.query(HabitLog)
+        .filter(
+            HabitLog.habit_id == habit_id,
+            HabitLog.date == date.today()
+        )
+        .first()
+    )
+
+    if not log:
+        raise HTTPException(
+            status_code=404,
+            detail="Today's log not found"
+        )
+
+    db.delete(log)
+    db.commit()
+
+    # Clear analytics cache
+    delete_cache(f"weekly_user_{user_id}")
+    delete_cache(f"monthly_user_{user_id}")
+
+    return {
+        "message": "Today's habit log deleted successfully"
+    }

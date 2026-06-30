@@ -14,6 +14,8 @@ from app.models import ai_insight
 from app.routes.ai import router as ai_router
 from app.routes.logs import router as logs_router
 from app.routes.analytics import router as analytics_router
+from app.models import notification
+from app.routes.notification import router as notifications_router
 
 app = FastAPI(
     title="Habit Intelligence System",
@@ -33,8 +35,11 @@ Features:
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
+     allow_origins=[
         "http://localhost:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:8000",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -48,6 +53,8 @@ app.include_router(habits_router)
 app.include_router(logs_router)
 app.include_router(analytics_router)
 app.include_router(ai_router)
+app.include_router(notifications_router)
+
 @app.get("/")
 def root():
     return {

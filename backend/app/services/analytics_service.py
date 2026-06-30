@@ -1,9 +1,14 @@
 from datetime import date, timedelta
+from unittest import result
 from sqlalchemy.orm import Session
 
 from app.models.habit import Habit
 from app.models.habit_log import HabitLog
 
+from app.services.cache_service import (
+    get_cache,
+    set_cache
+)
 def calculate_consistency(
     db: Session,
     habit_id: int,
@@ -169,11 +174,17 @@ def risk_score(
     }
 
 
-
 def weekly_summary(
     db: Session,
     user_id: int
 ):
+    cache_key = f"weekly_user_{user_id}"
+
+    cached = get_cache(cache_key)
+
+    if cached:
+        return cached
+    # Last 7 days
     week_start = date.today() - timedelta(days=6)
 
     habits = (
@@ -191,6 +202,37 @@ def weekly_summary(
     highest = -1
     lowest = 101
 
+    # Daily progress for chart
+    daily_progress = []
+
+    for i in range(7):
+
+        current_day = week_start + timedelta(days=i)
+
+        completed_today = 0
+
+        for habit in habits:
+
+            logs = (
+                db.query(HabitLog)
+                .filter(
+                    HabitLog.habit_id == habit.id,
+                    HabitLog.date == current_day,
+                    HabitLog.status == "completed"
+                )
+                .all()
+            )
+
+            completed_today += len(logs)
+
+        daily_progress.append(
+            {
+                "day": current_day.strftime("%a"),
+                "completed": completed_today
+            }
+        )
+
+    # Existing analytics
     for habit in habits:
 
         logs = (
@@ -213,6 +255,7 @@ def weekly_summary(
         completed_logs += completed
 
         if len(logs) > 0:
+
             score = (completed / len(logs)) * 100
 
             if score > highest:
@@ -226,6 +269,7 @@ def weekly_summary(
     completion_rate = 0
 
     if total_logs:
+
         completion_rate = round(
             (completed_logs / total_logs) * 100,
             2
@@ -236,15 +280,21 @@ def weekly_summary(
         "total": total_logs,
         "completion_rate": completion_rate,
         "strongest_habit": strongest_habit,
-        "weakest_habit": weakest_habit
+        "weakest_habit": weakest_habit,
+        "daily_progress": daily_progress
     }
-
-
 
 def monthly_summary(
     db: Session,
     user_id: int
 ):
+    cache_key = f"monthly_user_{user_id}"
+
+    cached = get_cache(cache_key)
+
+    if cached:
+        return cached
+
     today = date.today()
 
     habits = (
@@ -326,10 +376,18 @@ def monthly_summary(
             lowest = score
             worst_category = category
 
-    return {
-        "completed": completed_logs,
-        "total": total_logs,
-        "completion_rate": completion_rate,
-        "best_category": best_category,
-        "worst_category": worst_category
+    result = {
+    "completed": completed_logs,
+    "total": total_logs,
+    "completion_rate": completion_rate,
+    "best_category": best_category,
+    "worst_category": worst_category
     }
+
+    set_cache(
+    cache_key,
+    result,
+    expiry=300
+    )
+
+    return result

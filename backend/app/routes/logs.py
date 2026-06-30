@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
+from app.services import log_service
 
 from app.database import get_db
 from app.schemas.log import (
@@ -74,4 +75,15 @@ def get_logs_by_habit(
         db,
         habit_id,
         current_user.id
+    )
+@router.delete("/today/{habit_id}")
+def delete_today_log_route(
+    habit_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_logged_in_user)
+):
+    return log_service.delete_today_log(
+        db=db,
+        habit_id=habit_id,
+        user_id=current_user.id
     )

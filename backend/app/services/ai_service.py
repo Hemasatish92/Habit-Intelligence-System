@@ -85,6 +85,8 @@ Provide:
 3. Practical advice
 
 Keep the response under 100 words.
+
+Respond in plain text only. Do not use Markdown, asterisks, hashes, or bullet symbols — write in plain sentences and short paragraphs.
 """
 
     response = model.generate_content(prompt)
@@ -137,6 +139,8 @@ Weakest Habit:
 Generate a motivational weekly report.
 
 Limit response to 120 words.
+
+Respond in plain text only. Do not use Markdown, asterisks, hashes, or bullet symbols — write in plain sentences and short paragraphs.
 """
 
     response = model.generate_content(prompt)
@@ -223,6 +227,8 @@ Analyze:
 3. Three practical improvements
 
 Maximum 150 words.
+
+Respond in plain text only. Do not use Markdown, asterisks, hashes, or bullet symbols — write in plain sentences and short paragraphs.
 """
 
     response = model.generate_content(prompt)

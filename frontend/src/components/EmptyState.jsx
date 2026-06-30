@@ -1,30 +1,20 @@
-import { FaClipboardList } from "react-icons/fa";
+import { ClipboardList } from "lucide-react";
 
-export default function EmptyState() {
-
+export default function EmptyState({
+    title = "No Habits Yet",
+    subtitle = "Create your first habit above to begin tracking."
+}) {
     return (
-
-        <div className="bg-white rounded-xl shadow p-12 text-center">
-
-            <FaClipboardList
-                size={60}
-                className="mx-auto text-gray-400"
-            />
-
-            <h2 className="text-2xl font-bold mt-5">
-
-                No Habits Yet
-
+        <div className="card p-12 text-center">
+            <div className="mx-auto h-16 w-16 rounded-2xl bg-brand-50 text-brand-500 flex items-center justify-center mb-5">
+                <ClipboardList size={28} />
+            </div>
+            <h2 className="text-xl font-bold text-ink-900">
+                {title}
             </h2>
-
-            <p className="text-gray-500 mt-2">
-
-                Create your first habit to begin tracking.
-
+            <p className="text-ink-400 mt-2 text-sm">
+                {subtitle}
             </p>
-
         </div>
-
     );
-
 }
