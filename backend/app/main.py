@@ -40,8 +40,8 @@ app.add_middleware(
         "http://localhost:3000",
         "http://127.0.0.1:3000",
         "http://localhost:8000",
-        "https://habit-intelligence-system.onrender.com",
-        "https://habit-intelligence-system.vercel.app"
+        "https://habit-intelligence-system-hema16.vercel.app"
+        
     ],
     allow_credentials=True,
     allow_methods=["*"],
