@@ -41,6 +41,7 @@ export default function Dashboard() {
 
     const [weekly, setWeekly] = useState({
         completed: 0,
+        remaining: 0,
         total: 0,
         completion_rate: 0,
         strongest_habit: "",
@@ -52,9 +53,10 @@ export default function Dashboard() {
         if (habits.length > 0) {
             loadDashboard();
         }
-    }, [habits]);
+    }, [habits, completedTodayIds]);
 
     async function loadDashboard() {
+
         setLoading(true);
         setError("");
 
@@ -65,25 +67,25 @@ export default function Dashboard() {
 
             if (habits.length > 0) {
 
-                const firstHabit = habits[0];
-
                 const analyticsResponse = await api.get(
-                    `/analytics/dashboard/${firstHabit.id}`
+                    `/analytics/dashboard/${habits[0].id}`
                 );
 
                 setDashboard(analyticsResponse.data);
+
             }
 
-        } catch (error) {
+        } catch (err) {
 
-            console.log(error);
-            setError("Could not load dashboard data. Please check your connection.");
+            console.log(err);
+            setError("Could not load dashboard data.");
 
         } finally {
 
             setLoading(false);
 
         }
+
     }
 
     async function handleCompleteHabit(id) {
@@ -98,13 +100,15 @@ export default function Dashboard() {
         dashboard.risk === "High"
             ? "text-red-600"
             : dashboard.risk === "Medium"
-                ? "text-orange-500"
-                : "text-emerald-600";
+            ? "text-orange-500"
+            : "text-emerald-600";
 
     return (
+
         <div className="space-y-8">
 
             <div>
+
                 <h1 className="text-3xl font-extrabold text-ink-900">
                     Welcome Back 👋
                 </h1>
@@ -112,6 +116,7 @@ export default function Dashboard() {
                 <p className="text-ink-500 mt-1">
                     Monitor your productivity with AI.
                 </p>
+
             </div>
 
             {error && <ErrorMessage message={error} />}
@@ -131,7 +136,7 @@ export default function Dashboard() {
                     </h2>
 
                     <p className="text-ink-500 mt-2 text-sm leading-relaxed">
-                        Your dashboard will show streaks, consistency, and AI insights once you start tracking something. It takes about 10 seconds to add your first habit.
+                        Your dashboard will show streaks, consistency and AI insights once you start tracking something.
                     </p>
 
                     <Link
@@ -147,8 +152,7 @@ export default function Dashboard() {
             ) : (
 
                 <>
-
-                    <TodayChecklist
+                                    <TodayChecklist
                         habits={habits}
                         completedTodayIds={completedTodayIds}
                         onComplete={handleCompleteHabit}
@@ -170,7 +174,7 @@ export default function Dashboard() {
                             value={`${dashboard.consistency}%`}
                             icon={TrendingUp}
                             tone="green"
-                            tooltip="The percentage of your target days you've actually completed for this habit."
+                            tooltip="The percentage of your target days you've actually completed."
                         />
 
                         <StatCard
@@ -178,7 +182,7 @@ export default function Dashboard() {
                             value={dashboard.current_streak}
                             icon={Flame}
                             tone="orange"
-                            tooltip="How many days in a row you've completed this habit without missing a day."
+                            tooltip="Current consecutive days completed."
                         />
 
                         <StatCard
@@ -186,7 +190,7 @@ export default function Dashboard() {
                             value={dashboard.longest_streak}
                             icon={Trophy}
                             tone="purple"
-                            tooltip="Your best-ever run of consecutive completions for this habit."
+                            tooltip="Your best streak so far."
                         />
 
                     </div>
@@ -205,30 +209,50 @@ export default function Dashboard() {
                         <div className="grid sm:grid-cols-2 gap-4 text-sm">
 
                             <div className="flex justify-between py-2 border-b border-ink-100">
-                                <span className="text-ink-500">Total Logs</span>
+                                <span className="text-ink-500">
+                                    Total Habits
+                                </span>
+
                                 <span className="font-semibold text-ink-900">
                                     {weekly.total}
                                 </span>
                             </div>
 
                             <div className="flex justify-between py-2 border-b border-ink-100">
-                                <span className="text-ink-500">Completed</span>
+                                <span className="text-ink-500">
+                                    Completed
+                                </span>
+
                                 <span className="font-semibold text-ink-900">
                                     {weekly.completed}
                                 </span>
                             </div>
 
                             <div className="flex justify-between py-2 border-b border-ink-100">
-                                <span className="text-ink-500">Completion Rate</span>
+                                <span className="text-ink-500">
+                                    Remaining
+                                </span>
+
                                 <span className="font-semibold text-ink-900">
-                                    {weekly.completion_rate}%
+                                    {weekly.remaining}
                                 </span>
                             </div>
 
                             <div className="flex justify-between py-2 border-b border-ink-100">
+                                <span className="text-ink-500">
+                                    Completion Rate
+                                </span>
+
+                                <span className="font-semibold text-ink-900">
+                                    {weekly.completion_rate}%
+                                </span>
+                            </div>
+                                                        <div className="flex justify-between py-2 border-b border-ink-100">
                                 <span className="text-ink-500 flex items-center gap-1">
                                     Risk Level
-                                    <span title="How likely you are to break this habit's streak soon, based on recent consistency.">
+                                    <span
+                                        title="How likely you are to break your streak based on recent consistency."
+                                    >
                                         <Info
                                             size={12}
                                             className="text-ink-300 cursor-help"
@@ -239,7 +263,26 @@ export default function Dashboard() {
                                 <span className={`font-semibold ${riskTone}`}>
                                     {dashboard.risk}
                                 </span>
+                            </div>
 
+                            <div className="flex justify-between py-2 border-b border-ink-100">
+                                <span className="text-ink-500">
+                                    Strongest Habit
+                                </span>
+
+                                <span className="font-semibold text-ink-900">
+                                    {weekly.strongest_habit || "-"}
+                                </span>
+                            </div>
+
+                            <div className="flex justify-between py-2 border-b border-ink-100">
+                                <span className="text-ink-500">
+                                    Weakest Habit
+                                </span>
+
+                                <span className="font-semibold text-ink-900">
+                                    {weekly.weakest_habit || "-"}
+                                </span>
                             </div>
 
                         </div>
@@ -251,5 +294,7 @@ export default function Dashboard() {
             )}
 
         </div>
+
     );
+
 }

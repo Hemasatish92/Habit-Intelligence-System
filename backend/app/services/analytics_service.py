@@ -173,18 +173,15 @@ def risk_score(
         "risk": risk
     }
 
+def weekly_summary(db: Session, user_id: int):
 
-def weekly_summary(
-    db: Session,
-    user_id: int
-):
     cache_key = f"weekly_user_{user_id}"
 
     cached = get_cache(cache_key)
 
     if cached:
         return cached
-    # Last 7 days
+
     week_start = date.today() - timedelta(days=6)
 
     habits = (
@@ -193,8 +190,9 @@ def weekly_summary(
         .all()
     )
 
-    total_logs = 0
-    completed_logs = 0
+    total_habits = len(habits)
+
+    completed = 0
 
     strongest_habit = None
     weakest_habit = None
@@ -202,7 +200,6 @@ def weekly_summary(
     highest = -1
     lowest = 101
 
-    # Daily progress for chart
     daily_progress = []
 
     for i in range(7):
@@ -213,17 +210,18 @@ def weekly_summary(
 
         for habit in habits:
 
-            logs = (
+            log = (
                 db.query(HabitLog)
                 .filter(
                     HabitLog.habit_id == habit.id,
                     HabitLog.date == current_day,
                     HabitLog.status == "completed"
                 )
-                .all()
+                .first()
             )
 
-            completed_today += len(logs)
+            if log:
+                completed_today += 1
 
         daily_progress.append(
             {
@@ -232,7 +230,6 @@ def weekly_summary(
             }
         )
 
-    # Existing analytics
     for habit in habits:
 
         logs = (
@@ -244,45 +241,51 @@ def weekly_summary(
             .all()
         )
 
-        total_logs += len(logs)
-
-        completed = sum(
+        done = sum(
             1
             for log in logs
             if log.status == "completed"
         )
 
-        completed_logs += completed
+        if done > 0:
+            completed += 1
+
+        score = 0
 
         if len(logs) > 0:
+            score = (done / len(logs)) * 100
 
-            score = (completed / len(logs)) * 100
+        if score > highest:
+            highest = score
+            strongest_habit = habit.name
 
-            if score > highest:
-                highest = score
-                strongest_habit = habit.name
+        if score < lowest:
+            lowest = score
+            weakest_habit = habit.name
 
-            if score < lowest:
-                lowest = score
-                weakest_habit = habit.name
+    remaining = total_habits - completed
 
     completion_rate = 0
 
-    if total_logs:
-
+    if total_habits > 0:
         completion_rate = round(
-            (completed_logs / total_logs) * 100,
+            (completed / total_habits) * 100,
             2
         )
 
-    return {
-        "completed": completed_logs,
-        "total": total_logs,
+    result = {
+        "completed": completed,
+        "remaining": remaining,
+        "total": total_habits,
         "completion_rate": completion_rate,
         "strongest_habit": strongest_habit,
         "weakest_habit": weakest_habit,
         "daily_progress": daily_progress
     }
+
+    set_cache(cache_key, result, 300)
+
+    return result
 
 def monthly_summary(
     db: Session,
