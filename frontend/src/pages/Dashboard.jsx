@@ -40,45 +40,66 @@ export default function Dashboard() {
     });
 
     const [weekly, setWeekly] = useState({
-    completed: 0,
-    total: 0,
-    completion_rate: 0,
-    strongest_habit: "",
-    weakest_habit: "",
-    daily_progress: []
-});
+        completed: 0,
+        total: 0,
+        completion_rate: 0,
+        strongest_habit: "",
+        weakest_habit: "",
+        daily_progress: []
+    });
 
     useEffect(() => {
-        loadDashboard();
-    }, [habits.length]);
+        if (habits.length > 0) {
+            loadDashboard();
+        }
+    }, [habits]);
 
     async function loadDashboard() {
         setLoading(true);
         setError("");
 
         try {
+
             const weeklyResponse = await api.get("/analytics/weekly");
             setWeekly(weeklyResponse.data);
 
             if (habits.length > 0) {
+
                 const firstHabit = habits[0];
 
                 const analyticsResponse = await api.get(
                     `/analytics/dashboard/${firstHabit.id}`
                 );
+
                 setDashboard(analyticsResponse.data);
             }
-        }
-        catch (error) {
+
+        } catch (error) {
+
             console.log(error);
             setError("Could not load dashboard data. Please check your connection.");
-        }
-        finally {
+
+        } finally {
+
             setLoading(false);
+
         }
     }
 
-    const riskTone = dashboard.risk === "High" ? "text-red-600" : dashboard.risk === "Medium" ? "text-orange-500" : "text-emerald-600";
+    async function handleCompleteHabit(id) {
+
+        await completeHabit(id);
+
+        await loadDashboard();
+
+    }
+
+    const riskTone =
+        dashboard.risk === "High"
+            ? "text-red-600"
+            : dashboard.risk === "Medium"
+                ? "text-orange-500"
+                : "text-emerald-600";
 
     return (
         <div className="space-y-8">
@@ -87,6 +108,7 @@ export default function Dashboard() {
                 <h1 className="text-3xl font-extrabold text-ink-900">
                     Welcome Back 👋
                 </h1>
+
                 <p className="text-ink-500 mt-1">
                     Monitor your productivity with AI.
                 </p>
@@ -97,16 +119,21 @@ export default function Dashboard() {
             {(loading || habitsLoading) ? (
                 <Loader />
             ) : habits.length === 0 ? (
+
                 <div className="card p-10 text-center max-w-xl mx-auto">
+
                     <div className="mx-auto h-14 w-14 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center mb-5">
                         <Sparkles size={26} />
                     </div>
+
                     <h2 className="text-xl font-bold text-ink-900">
                         Let's set up your first habit
                     </h2>
+
                     <p className="text-ink-500 mt-2 text-sm leading-relaxed">
                         Your dashboard will show streaks, consistency, and AI insights once you start tracking something. It takes about 10 seconds to add your first habit.
                     </p>
+
                     <Link
                         to="/habits"
                         className="inline-flex items-center gap-2 mt-6 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors"
@@ -114,13 +141,17 @@ export default function Dashboard() {
                         <PlusCircle size={16} />
                         Create Your First Habit
                     </Link>
+
                 </div>
+
             ) : (
+
                 <>
+
                     <TodayChecklist
                         habits={habits}
                         completedTodayIds={completedTodayIds}
-                        onComplete={completeHabit}
+                        onComplete={handleCompleteHabit}
                         loading={habitsLoading}
                     />
 
@@ -161,9 +192,9 @@ export default function Dashboard() {
                     </div>
 
                     <WeeklyChart
-    title="Weekly Progress"
-    data={weekly.daily_progress || []}
-/>
+                        title="Weekly Progress"
+                        data={weekly.daily_progress || []}
+                    />
 
                     <div className="card p-6">
 
@@ -172,31 +203,51 @@ export default function Dashboard() {
                         </h2>
 
                         <div className="grid sm:grid-cols-2 gap-4 text-sm">
+
                             <div className="flex justify-between py-2 border-b border-ink-100">
                                 <span className="text-ink-500">Total Logs</span>
-                                <span className="font-semibold text-ink-900">{weekly.total}</span>
+                                <span className="font-semibold text-ink-900">
+                                    {weekly.total}
+                                </span>
                             </div>
+
                             <div className="flex justify-between py-2 border-b border-ink-100">
                                 <span className="text-ink-500">Completed</span>
-                                <span className="font-semibold text-ink-900">{weekly.completed}</span>
+                                <span className="font-semibold text-ink-900">
+                                    {weekly.completed}
+                                </span>
                             </div>
+
                             <div className="flex justify-between py-2 border-b border-ink-100">
                                 <span className="text-ink-500">Completion Rate</span>
-                                <span className="font-semibold text-ink-900">{weekly.completion_rate}%</span>
+                                <span className="font-semibold text-ink-900">
+                                    {weekly.completion_rate}%
+                                </span>
                             </div>
+
                             <div className="flex justify-between py-2 border-b border-ink-100">
                                 <span className="text-ink-500 flex items-center gap-1">
                                     Risk Level
-                                    <span title="How likely you are to break this habit's streak soon, based on recent consistency. Low = on track, High = at risk of falling off.">
-                                        <Info size={12} className="text-ink-300 cursor-help" />
+                                    <span title="How likely you are to break this habit's streak soon, based on recent consistency.">
+                                        <Info
+                                            size={12}
+                                            className="text-ink-300 cursor-help"
+                                        />
                                     </span>
                                 </span>
-                                <span className={`font-semibold ${riskTone}`}>{dashboard.risk}</span>
+
+                                <span className={`font-semibold ${riskTone}`}>
+                                    {dashboard.risk}
+                                </span>
+
                             </div>
+
                         </div>
 
                     </div>
+
                 </>
+
             )}
 
         </div>

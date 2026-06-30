@@ -9,6 +9,17 @@ function todayString() {
     const dd = String(d.getDate()).padStart(2, "0");
     return `${yyyy}-${mm}-${dd}`;
 }
+import { useCallback, useEffect, useState } from "react";
+import api from "../services/api";
+import { toast } from "react-toastify";
+
+function todayString() {
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+}
 
 export default function useTodayHabits() {
 
@@ -47,7 +58,6 @@ export default function useTodayHabits() {
         catch (err) {
 
             console.log(err);
-
             setError("Could not load your habits.");
 
         }
@@ -69,20 +79,12 @@ export default function useTodayHabits() {
 
         try {
 
-            // Already completed today → Undo
+            // Undo today's completion
             if (completedTodayIds.has(id)) {
 
                 await api.delete(`/logs/today/${id}`);
 
-                setCompletedTodayIds(prev => {
-
-                    const updated = new Set(prev);
-
-                    updated.delete(id);
-
-                    return updated;
-
-                });
+                await load();
 
                 toast.success("Habit unchecked for today");
 
@@ -90,7 +92,7 @@ export default function useTodayHabits() {
 
             }
 
-            // Otherwise mark complete
+            // Mark complete
             await api.post(
                 "/logs/",
                 {
@@ -99,15 +101,7 @@ export default function useTodayHabits() {
                 }
             );
 
-            setCompletedTodayIds(prev => {
-
-                const updated = new Set(prev);
-
-                updated.add(id);
-
-                return updated;
-
-            });
+            await load();
 
             toast.success("Nice work — marked complete for today 🎉");
 
@@ -121,7 +115,7 @@ export default function useTodayHabits() {
                 toast.info("You've already marked this complete today");
 
             }
-            else if (err.response?.status === 404) {
+            else if (err.response?.status ===404) {
 
                 toast.error("Today's log not found");
 
@@ -139,15 +133,10 @@ export default function useTodayHabits() {
     return {
 
         habits,
-
         completedTodayIds,
-
         loading,
-
         error,
-
         reload: load,
-
         completeHabit
 
     };
