@@ -10,49 +10,42 @@ redis_client = redis.Redis.from_url(
 
 
 def get_cache(key: str):
-    """
-    Get cached data.
-    """
-    value = redis_client.get(key)
+    try:
+        value = redis_client.get(key)
 
-    if value:
-        return json.loads(value)
+        if value:
+            return json.loads(value)
 
-    return None
+        return None
+
+    except Exception as e:
+        print(f"Redis GET Error: {e}")
+        return None
 
 
-def set_cache(
-    key: str,
-    value,
-    expiry: int = 300
-):
-    """
-    Cache data.
+def set_cache(key: str, value, expiry: int = 300):
+    try:
+        redis_client.setex(
+            key,
+            expiry,
+            json.dumps(value)
+        )
 
-    Default expiry:
-    5 minutes
-    """
-
-    redis_client.setex(
-        key,
-        expiry,
-        json.dumps(value)
-    )
+    except Exception as e:
+        print(f"Redis SET Error: {e}")
 
 
 def delete_cache(key: str):
-    """
-    Delete one cache entry.
-    """
+    try:
+        redis_client.delete(key)
 
-    redis_client.delete(key)
+    except Exception as e:
+        print(f"Redis DELETE Error: {e}")
 
 
 def clear_all_cache():
-    """
-    Remove every cache entry.
+    try:
+        redis_client.flushdb()
 
-    Useful while developing.
-    """
-
-    redis_client.flushdb()
+    except Exception as e:
+        print(f"Redis CLEAR Error: {e}")
